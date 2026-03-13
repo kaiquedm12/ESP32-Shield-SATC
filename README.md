@@ -2,6 +2,8 @@
 
 Projetos desenvolvidos com a **placa ESP32 Shield SATC**, utilizando os sensores **LDR** (luminosidade) e **DHT11** (temperatura e umidade), com envio de dados para a plataforma **ThingSpeak**.
 
+![WhatsApp Image 2026-03-13 at 08 40 38](https://github.com/user-attachments/assets/bc63606b-8e7f-496d-9fd1-09e6127b1d6c)
+
 ---
 
 ## 📁 Estrutura do Repositório

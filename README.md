@@ -1,273 +1,79 @@
-# ESP32-Shield-SATC
+# 🛡️ ESP32 Shield SATC
 
-# Luminosidade (SENSOR LDR) / TEMPERATURA e UMIDADE (SENSOR DHT11)
+Projetos desenvolvidos com a **placa ESP32 Shield SATC**, utilizando os sensores **LDR** (luminosidade) e **DHT11** (temperatura e umidade), com envio de dados para a plataforma **ThingSpeak**.
 
-## código
+---
 
-```
-#include "DHT.h"
-
-#define DHTPIN 33
-#define DHTTYPE DHT11
-
-#define LDR_PIN 39
-
-DHT dht(DHTPIN, DHTTYPE);
-
-void setup() {
-  Serial.begin(115200);
-  dht.begin();
-}
-
-void loop() {
-
-  // Leitura do LDR
-  int valorLDR = analogRead(LDR_PIN);
-
-  // Leitura do DHT11
-  float temperatura = dht.readTemperature();
-  float umidade = dht.readHumidity();
-
-  // Verifica erro de leitura
-  if (isnan(temperatura) || isnan(umidade)) {
-    Serial.println("Erro ao ler DHT11");
-    return;
-  }
-
-  Serial.print("Luminosidade: ");
-  Serial.print(valorLDR);
-
-  Serial.print(" | Temperatura: ");
-  Serial.print(temperatura);
-  Serial.print(" °C");
-
-  Serial.print(" | Umidade: ");
-  Serial.print(umidade);
-  Serial.println(" %");
-
-  delay(2000);
-}
+## 📁 Estrutura do Repositório
 
 ```
-
-<img width="576" height="208" alt="image" src="https://github.com/user-attachments/assets/1a24f675-53d6-45c0-90d4-23738c4287e2" />
-
-# LINK do THINGSPEAK
-https://thingspeak.mathworks.com/channels/3297913
-
-### código que conecta na rede e envia os dados
-
+ESP32-Shield-SATC/
+├── exemplo1-ldr-dht11/          # Leitura local dos sensores (Serial)
+├── exemplo2-wifi-thingspeak/    # WiFi convencional + ThingSpeak
+└── exemplo3-wpa-enterprise/     # WiFi WPA2 Enterprise (SATC) + ThingSpeak
 ```
-#include <WiFi.h>
-#include "DHT.h"
 
-#define DHTPIN 33
-#define DHTTYPE DHT11
-#define LDR_PIN 39
+---
 
-const char* ssid = "satc_grupo_1";
-const char* password = "vbyd411910";
+## 🔧 Hardware
 
-const char* server = "api.thingspeak.com";
-String apiKey = "E6Q6XMDMU15CSR6V";
+| Componente | Descrição |
+|---|---|
+| ESP32 Shield SATC | Microcontrolador principal |
+| Sensor LDR | Medição de luminosidade (GPIO 39) |
+| Sensor DHT11 | Temperatura e umidade (GPIO 33) |
 
-WiFiClient client;
+---
 
-DHT dht(DHTPIN, DHTTYPE);
+## 📂 Exemplos
 
-void setup() {
+### [Exemplo 1 — LDR + DHT11 (Monitor Serial)](./exemplo1-ldr-dht11/)
 
-  Serial.begin(115200);
-  dht.begin();
+Lê os dados dos sensores e exibe no Monitor Serial.
 
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
+> **Pinos:** LDR → GPIO 39 | DHT11 → GPIO 33
 
-  Serial.print("Conectando ao WiFi");
+<img width="576" alt="Monitor Serial - Exemplo 1" src="https://github.com/user-attachments/assets/1a24f675-53d6-45c0-90d4-23738c4287e2" />
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
+---
 
-  Serial.println();
-  Serial.println("WiFi conectado!");
-  Serial.print("IP: ");
-  Serial.println(WiFi.localIP());
-}
+### [Exemplo 2 — WiFi (WPA2-Personal) + ThingSpeak](./exemplo2-wifi-thingspeak/)
 
-void loop() {
+Conecta em uma rede WiFi convencional e envia os dados dos sensores para o **ThingSpeak** a cada 20 segundos.
 
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi caiu. Reconectando...");
-    WiFi.begin(ssid, password);
+> **Canal ThingSpeak:** 🔗 [https://thingspeak.mathworks.com/channels/3297913](https://thingspeak.mathworks.com/channels/3297913)
 
-    while (WiFi.status() != WL_CONNECTED) {
-      delay(500);
-      Serial.print(".");
-    }
+<img width="1320" alt="Monitor Serial - Exemplo 2" src="https://github.com/user-attachments/assets/8c2f7f49-1b0e-4bed-8258-cd77bace58a3" />
 
-    Serial.println("Reconectado!");
-  }
+---
 
-  int luminosidade = analogRead(LDR_PIN);
+### [Exemplo 3 — WiFi WPA2 Enterprise (SATC) + ThingSpeak](./exemplo3-wpa-enterprise/)
 
-  float temperatura = dht.readTemperature();
-  float umidade = dht.readHumidity();
+Conecta na rede institucional **SATC 2.4** (WPA2 Enterprise / PEAP) e envia os dados ao **ThingSpeak**.
 
-  if (isnan(temperatura) || isnan(umidade)) {
-    Serial.println("Erro ao ler DHT11");
-    delay(2000);
-    return;
-  }
+<img width="1581" alt="Serial Monitor - Exemplo 3 (conexão)" src="https://github.com/user-attachments/assets/24daddec-bb3d-4fa6-ab33-fa573473d37b" />
 
-  Serial.println("Enviando dados para ThingSpeak...");
+<img width="1362" alt="ThingSpeak - Exemplo 3 (gráfico)" src="https://github.com/user-attachments/assets/905fec50-ab4c-4a8b-819f-9c1eecd74f51" />
 
-  if (client.connect(server, 80)) {
+---
 
-    String url = "/update?api_key=" + apiKey +
-                 "&field1=" + String(luminosidade) +
-                 "&field2=" + String(temperatura) +
-                 "&field3=" + String(umidade);
+## 📦 Dependências
 
-    client.print(String("GET ") + url + " HTTP/1.1\r\n" +
-                 "Host: api.thingspeak.com\r\n" +
-                 "Connection: close\r\n\r\n");
+- [DHT sensor library](https://github.com/adafruit/DHT-sensor-library) — Adafruit
+- Biblioteca **WiFi** (incluída na plataforma ESP32 para Arduino IDE)
+- Biblioteca **esp_wpa2** (incluída na plataforma ESP32 para Arduino IDE)
 
-    Serial.println("Dados enviados!");
-  }
-  else {
-    Serial.println("Falha na conexão com ThingSpeak");
-  }
+---
 
-  client.stop();
+## 🚀 Como começar
 
-  Serial.print("Luminosidade: ");
-  Serial.println(luminosidade);
+1. Instale a **Arduino IDE** com suporte ao ESP32 ([guia oficial](https://docs.espressif.com/projects/arduino-esp32/en/latest/installing.html)).
+2. Instale a biblioteca **DHT sensor library** pelo Gerenciador de Bibliotecas da Arduino IDE.
+3. Escolha o exemplo desejado na pasta correspondente, configure suas credenciais e faça o upload para o ESP32.
 
-  Serial.print("Temperatura: ");
-  Serial.println(temperatura);
+---
 
-  Serial.print("Umidade: ");
-  Serial.println(umidade);
+## 📜 Licença
 
-  Serial.println("-----------------------");
-
-  delay(20000); // mínimo 15s para ThingSpeak
-}
-```
-<img width="1320" height="838" alt="image" src="https://github.com/user-attachments/assets/8c2f7f49-1b0e-4bed-8258-cd77bace58a3" />
-
-
-
-# código conectando no WPA ENTERPRISE SATC
-
-```
-#include <WiFi.h>
-#include "esp_wpa2.h"
-#include "DHT.h"
-
-#define DHTPIN 33
-#define DHTTYPE DHT11
-#define LDR_PIN 39
-
-// Rede
-const char* WIFI_SSID = "SATC 2.4";
-
-// Credenciais WPA2 Enterprise
-#define EAP_IDENTITY "kaique.41123"
-#define EAP_USERNAME "kaique.41123"
-#define EAP_PASSWORD "113485"
-
-// ThingSpeak
-const char* server = "api.thingspeak.com";
-String apiKey = "E6Q6XMDMU15CSR6V";
-
-WiFiClient client;
-DHT dht(DHTPIN, DHTTYPE);
-
-
-void conectarWiFiEnterprise() {
-
-  Serial.print("Conectando ao WiFi Enterprise: ");
-  Serial.println(WIFI_SSID);
-
-  WiFi.disconnect(true);
-  WiFi.mode(WIFI_STA);
-
-  WiFi.begin(WIFI_SSID, WPA2_AUTH_PEAP, EAP_IDENTITY, EAP_USERNAME, EAP_PASSWORD);
-
-  int tentativas = 0;
-
-  while (WiFi.status() != WL_CONNECTED && tentativas < 60) {
-    delay(500);
-    Serial.print(".");
-    tentativas++;
-  }
-
-  Serial.println();
-
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("WiFi conectado!");
-    Serial.print("IP: ");
-    Serial.println(WiFi.localIP());
-  } else {
-    Serial.println("Falha ao conectar no WiFi.");
-  }
-}
-
-
-void setup() {
-
-  Serial.begin(115200);
-  dht.begin();
-  delay(500);
-
-  Serial.println("ESP32 + WPA2 Enterprise + Sensores");
-
-  conectarWiFiEnterprise();
-}
-
-void loop() {
-  int luminosidade = analogRead(LDR_PIN);
-  float temperatura = dht.readTemperature();
-  float umidade = dht.readHumidity();
-
-  if (isnan(temperatura) || isnan(umidade)) {
-    Serial.println("Erro ao ler DHT11");
-    delay(2000);
-    return;
-  }
-
-  Serial.println("Enviando dados para ThingSpeak...");
-
-  if (client.connect(server, 80)) {
-
-    String url = "/update?api_key=" + apiKey + "&field1=" + String(luminosidade) + "&field2=" + String(temperatura) + "&field3=" + String(umidade);
-
-    client.print(String("GET ") + url + " HTTP/1.1\r\n" + "Host: api.thingspeak.com\r\n" + "Connection: close\r\n\r\n");
-
-    Serial.println("Dados enviados!");
-  } else {
-    Serial.println("Falha na conexão com ThingSpeak");
-  }
-
-  client.stop();
-
-  Serial.print("Luminosidade: ");
-  Serial.println(luminosidade);
-
-  Serial.print("Temperatura: ");
-  Serial.println(temperatura);
-
-  Serial.print("Umidade: ");
-  Serial.println(umidade);
-
-  Serial.println("-----------------------");
-
-  delay(20000);  // mínimo 15s para ThingSpeak
-}
-```
-<img width="1581" height="604" alt="image" src="https://github.com/user-attachments/assets/24daddec-bb3d-4fa6-ab33-fa573473d37b" />
-<img width="1362" height="836" alt="image" src="https://github.com/user-attachments/assets/905fec50-ab4c-4a8b-819f-9c1eecd74f51" />
+Este repositório é de uso educacional — desenvolvido nas aulas práticas da **SATC**.
 
